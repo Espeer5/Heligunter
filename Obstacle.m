@@ -23,6 +23,7 @@ classdef Obstacle
             surf(obj.xmesh * obj.radius + obj.center(1), ...
                  obj.ymesh * obj.radius + obj.center(2), ...
                  obj.zmesh * obj.radius + obj.center(3));
+            colormap([.5 .5 .5]);
         end
     end
 end

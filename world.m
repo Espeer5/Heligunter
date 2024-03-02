@@ -32,30 +32,33 @@ classdef world
                 world.obs(i).plot_obstacle();
             end
             view(-30,30)
+            % Add a floor
+            [x, y] = meshgrid(0:world.xmax, 0:world.ymax);
+            surf(x, y, zeros(length(x)), 'FaceColor', 'black')
+
         end
 
-        function world = add_arch(world, arch_center, arch_radius, n_spheres)
+        function world = add_arch(world, arch_center, arch_radius, n_spheres, girth)
             % Add an arch obstacle to the world map
             theta_mesh = linspace(0, pi, n_spheres);
             for i = 1:n_spheres
                 x = arch_center(1) + arch_radius * cos(theta_mesh(i));
                 y = arch_center(2);
                 z = arch_center(3) + arch_radius * sin(theta_mesh(i));
-                disp([x y z])
-                world.obs(end + 1) = Obstacle([x y z], 1);
+                world.obs(end + 1) = Obstacle([x y z], girth);
             end
         end
 
         function in_freespace = in_freespace(world, point)
             % Check if a point in the map is in freespace (outside any obstacles)
-            in_freespace = true
-            if point(1) > world.xmax | point(2) > world.ymax | point(3) > world.zmax
+            in_freespace = true;
+            if point(1) > world.xmax || point(2) > world.ymax || point(3) > world.zmax
                 error("point not in world")
             else
                 for i = 1:length(world.obs)
-                    dist = norm(world.obs(i).center - point)
+                    dist = norm(world.obs(i).center - point);
                     if dist <= world.obs(i).radius
-                        in_freespace = false
+                        in_freespace = false;
                     end
                 end
             end
