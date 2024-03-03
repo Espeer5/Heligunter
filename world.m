@@ -38,7 +38,8 @@ classdef world
 
         end
 
-        function world = add_arch(world, arch_center, arch_radius, n_spheres, girth)
+        function world = add_arch(world, arch_center, arch_radius, ...
+                n_spheres, girth)
             % Add an arch obstacle to the world map
             theta_mesh = linspace(0, pi, n_spheres);
             for i = 1:n_spheres
@@ -50,9 +51,11 @@ classdef world
         end
 
         function in_freespace = in_freespace(world, point)
-            % Check if a point in the map is in freespace (outside any obstacles)
+            % Check if a point in the map is in freespace
+            % (outside any obstacles)
             in_freespace = true;
-            if point(1) > world.xmax || point(2) > world.ymax || point(3) > world.zmax
+            if (point(1) > world.xmax || point(2) > world.ymax || point(3) ...
+                    > world.zmax)
                 error("point not in world")
             else
                 for i = 1:length(world.obs)
@@ -60,6 +63,23 @@ classdef world
                     if dist <= world.obs(i).radius
                         in_freespace = false;
                     end
+                end
+            end
+        end
+
+        function connects = connects(world, point1, point2)
+            % Determine if two points connect with respect to the world
+            connects = true;
+            v = point2 - point1;
+            v_norm = v / norm(v);
+            for i=1:length(world.obs)
+                Q = world.obs.center;
+                u = Q - point1;
+                proj = dot(u, v_norm) * v_norm;
+                w = u - proj;
+                if norm(w) <= world.obs(i).radius
+                    connects = false;
+                    break
                 end
             end
         end
