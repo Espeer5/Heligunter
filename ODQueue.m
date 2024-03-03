@@ -12,7 +12,7 @@ classdef ODQueue
 
         function ODQueue = enqueue(ODQueue, elem)
             % Add an element to the queue
-            ODQueue.list(end + 1) = elem;
+            ODQueue.list(end + 1, :) = elem;
         end
 
         function [ODQueue, out] = dequeue(ODQueue)
