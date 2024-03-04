@@ -2,12 +2,12 @@ classdef ODQueue
     % A general queue datastructure for implementing the OnDeck queue
 
     properties
-        list
+        list double
     end
 
     methods
         function ODQueue = ODQueue()
-            ODQueue.list = [];
+            ODQueue.list = double.empty;
         end
 
         function ODQueue = enqueue(ODQueue, elem)
@@ -20,14 +20,14 @@ classdef ODQueue
             if isempty(ODQueue.list)
                 out = [];
             else
-                out = ODQueue.list(1);
-                ODQueue.list(1) = [];
+                out = ODQueue.list(1, :);
+                ODQueue.list(1, :) = [];
             end
         end
 
         function ODQueue = sort(ODQueue)
             % Sort the onDeck queue
-            ODQueue = sortrows(ODQueue, 2);
+            ODQueue.list = sortrows(ODQueue.list, 2);
         end
     end
 end
