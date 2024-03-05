@@ -77,7 +77,6 @@ classdef world
                 u = Q - point1;
                 proj = dot(u, v_norm) * v_norm;
                 w = u - proj;
-                disp(norm(w))
                 if norm(w) <= world.obs(i).radius
                     connects = false;
                     break
