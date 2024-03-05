@@ -73,10 +73,11 @@ classdef world
             v = point2 - point1;
             v_norm = v / norm(v);
             for i=1:length(world.obs)
-                Q = world.obs.center;
+                Q = world.obs(i).center;
                 u = Q - point1;
                 proj = dot(u, v_norm) * v_norm;
                 w = u - proj;
+                disp(norm(w))
                 if norm(w) <= world.obs(i).radius
                     connects = false;
                     break

@@ -204,5 +204,28 @@ classdef PRM
                 line(x, y, z, 'Color', 'blue')
             end
         end
+
+        function PRM = post_process(PRM)
+           % Remove nodes in the same path that can be skipped without
+           % collisions
+           check_again = true;
+           while check_again == true
+               check_again = false;
+               i = 2;
+               while i < length(PRM.path)
+                   prev_node = PRM.sample_points(PRM.path(i-1), :);
+                   next_node = PRM.sample_points(PRM.path(i+1), :);
+                   if connects(PRM.space, prev_node, next_node)
+                       % skipping a node 
+                       PRM.path(i) = [];
+                       i = i + 1;
+                       check_again = true;
+                   else
+                       i = i + 1;
+                   end 
+               end 
+           end 
+        end
+
     end
 end
