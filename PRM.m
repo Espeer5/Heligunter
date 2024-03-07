@@ -39,8 +39,6 @@ classdef PRM
             PRM.sample_points = new_sample_points;
         end
 
-        function
-
         function show_sample(PRM)
             plot_world(PRM.space)
             scatter3(PRM.sample_points(:, 1), PRM.sample_points(:, 2), ...
@@ -133,6 +131,9 @@ classdef PRM
             ind = I(1);
             N = normals(ind, :);
 
+            % Show plane 
+            show_plane(start, N)
+
             % Defining size of plane to uniformly sample by max distance to space limits 
             center = ((goal - start) / 2) + start;
             to_lims = [xmax-center(1) center(1) ; ymax-center(2) center(2) ; zmax-center(3) center(3)];
@@ -153,6 +154,16 @@ classdef PRM
                 end
             end
         end
+
+        function show_plane(point, normal)
+            plot_world(PRM.space)
+            % Assuming forms: point = [x,y,z] and normal = [x,y,z]
+            d = -point*normal';
+            [xx,yy]=ndgrid(1:100,1:100);
+            % Calculate corresponding z
+            z = (-normal(1)*xx - normal(2)*yy - d)/normal(3);
+            surf(xx,yy,z)
+        end 
 
         function PRM = find_path(PRM, start, goal)
             % Find a path between a given start and goal
