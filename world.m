@@ -54,10 +54,13 @@ classdef world
             % Check if a point in the map is in freespace
             % (outside any obstacles)
             in_freespace = true;
+            % Ensure point in bounds
             if (point(1) > world.xmax || point(2) > world.ymax || point(3) ...
-                    > world.zmax)
-                error("point not in world")
+                    > world.zmax || point(1) <= 0 || point(2) <= 0 || ...
+                    point(3) <= 0)
+                in_freespace = false;
             else
+                % Check to ensure no collisions with obstacles
                 for i = 1:length(world.obs)
                     dist = norm(world.obs(i).center - point);
                     if dist <= world.obs(i).radius

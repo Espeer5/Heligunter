@@ -39,6 +39,8 @@ classdef PRM
             PRM.sample_points = new_sample_points;
         end
 
+        function
+
         function show_sample(PRM)
             plot_world(PRM.space)
             scatter3(PRM.sample_points(:, 1), PRM.sample_points(:, 2), ...
@@ -89,6 +91,65 @@ classdef PRM
                         line(x, y, z, 'Color', 'red')
                         edges = edges + 1;
                     end
+                end
+            end
+        end
+
+        function PRM = adaptive_sampler(PRM, start, goal)
+            % Sample the space according to a normal distribution on the plane
+            % which start and goal are on which passes through the least obstacles
+            v = goal - start;
+            v_norm = v / norm(v);
+            sorted_v = sort(v_norm, 'descend');
+            
+            % p = [-y, x, 0]
+            p = [-sorted_v(1) sorted_v(2) 0];
+            % b = binormal vector, perpendicular to p and v_norm
+            b = cross(v_norm, p);
+
+            num_angles = 50;
+            angles = linspace(0, pi, num_angles);
+
+            normals = zeros(num_angles, 3);
+            num_collisions = zeros(50, 1);
+
+            for i = 1:length(angles)
+                % Normal vector to plane
+                N = start + p/norm(p) * cos(angles(i)) + b * sin(angles(i));
+                normals(i) = N;
+                coll = 0;
+                for i = 1:length(PRM.space.obs)
+                    % Checking for collision between obstacle and chosen plane 
+                    obs_center = PRM.space.obs(i).obs_center;
+                    dist = dot((obs_center - start), N);
+                    if dist < PRM.space.obs(i).radius
+                        coll = coll + 1;
+                    end
+                end
+                num_collisions(i) = coll;
+            end
+            % Find the index of the normal with the fewest collisions
+            [~, I] = min(num_collisions);
+            ind = I(1);
+            N = normals(ind, :);
+
+            % Defining size of plane to uniformly sample by max distance to space limits 
+            center = ((goal - start) / 2) + start;
+            to_lims = [xmax-center(1) center(1) ; ymax-center(2) center(2) ; zmax-center(3) center(3)];
+            [~, I] = max(to_lims);
+            max_dim = I(1);
+            sz = max(to_lims(max_dim), :);
+
+            % Generating uniform sample on chosen plane 
+            Q = null(N');
+            while length(PRM.sample_points) < PRM.sample_n
+                % Get random point in plane
+                s_in_plane = center + Q*((rand(1, 1)-0.5)*sz);
+                % Shift point "S" along normal to plane by normally distributed 
+                % distance to get final sample point
+                s = s_in_plane + N * normrand(0, sz / 3);
+                if in_freespace(PRM.space, s)
+                    PRM.sample_points(end + 1, :) = s;
                 end
             end
         end
