@@ -54,7 +54,7 @@ classdef PRM
                     PRM.K + extra + 1);
                 found = 0;
                 j = 1;
-                while found < PRM.K && i < PRM.sample_n
+                while found < PRM.K && j < PRM.sample_n
                     j = j + 1;
                     if j > PRM.K + extra
                         neighbors = knnsearch(kdt, PRM.sample_points(i, :), ...
@@ -93,15 +93,23 @@ classdef PRM
             end
         end
 
-        function PRM = adaptive_sampler(PRM, start, goal)
+        function PRM = adaptive_sampler(PRM, start, goal, std_dev)
             % Sample the space according to a normal distribution on the plane
             % which start and goal are on which passes through the least obstacles
             v = goal - start;
             v_norm = v / norm(v);
             sorted_v = sort(v_norm, 'descend');
-            
-            % p = [-y, x, 0]
-            p = [-sorted_v(1) sorted_v(2) 0];
+            max_ind = find(v_norm == sorted_v(1));
+            max_2_ind = find(v_norm == sorted_v(2));
+            p = zeros(1, 3);
+            ind_1 = max_ind(1);
+            if max_2_ind(1) == ind_1
+                ind_2 = max_2_ind(2);
+            end
+            p(ind_1) = v_norm(ind_2);
+            p(ind_2) = -v_norm(ind_1);
+            p = p / norm(p);
+
             % b = binormal vector, perpendicular to p and v_norm
             b = cross(v_norm, p);
 
@@ -114,13 +122,15 @@ classdef PRM
             for i = 1:length(angles)
                 % Normal vector to plane
                 N = start + p/norm(p) * cos(angles(i)) + b * sin(angles(i));
-                normals(i) = N;
+                normals(i, :) = N;
+                % Show plane 
+                show_plane(PRM, start, N)
                 coll = 0;
-                for i = 1:length(PRM.space.obs)
+                for j = 1:length(PRM.space.obs)
                     % Checking for collision between obstacle and chosen plane 
-                    obs_center = PRM.space.obs(i).obs_center;
+                    obs_center = PRM.space.obs(j).center;
                     dist = dot((obs_center - start), N);
-                    if dist < PRM.space.obs(i).radius
+                    if dist < PRM.space.obs(j).radius
                         coll = coll + 1;
                     end
                 end
@@ -132,34 +142,37 @@ classdef PRM
             N = normals(ind, :);
 
             % Show plane 
-            show_plane(start, N)
+            show_plane(PRM, start, N)
 
             % Defining size of plane to uniformly sample by max distance to space limits 
             center = ((goal - start) / 2) + start;
+            xmax = PRM.space.xmax;
+            ymax = PRM.space.ymax;
+            zmax = PRM.space.zmax;
             to_lims = [xmax-center(1) center(1) ; ymax-center(2) center(2) ; zmax-center(3) center(3)];
             [~, I] = max(to_lims);
             max_dim = I(1);
-            sz = max(to_lims(max_dim), :);
+            sz = max(to_lims(max_dim, :));
 
             % Generating uniform sample on chosen plane 
-            Q = null(N');
+            Q = null(N);
             while length(PRM.sample_points) < PRM.sample_n
                 % Get random point in plane
-                s_in_plane = center + Q*((rand(1, 1)-0.5)*sz);
+                s_in_plane = center' + Q*((rand(2, 1)-0.5)*sz);
                 % Shift point "S" along normal to plane by normally distributed 
                 % distance to get final sample point
-                s = s_in_plane + N * normrand(0, sz / 3);
+                s = s_in_plane' + N * normrnd(0, std_dev);
                 if in_freespace(PRM.space, s)
                     PRM.sample_points(end + 1, :) = s;
                 end
             end
         end
 
-        function show_plane(point, normal)
+        function show_plane(PRM, point, normal)
             plot_world(PRM.space)
             % Assuming forms: point = [x,y,z] and normal = [x,y,z]
             d = -point*normal';
-            [xx,yy]=ndgrid(1:100,1:100);
+            [xx,yy]=ndgrid(1:PRM.space.xmax, 1:PRM.space.ymax);
             % Calculate corresponding z
             z = (-normal(1)*xx - normal(2)*yy - d)/normal(3);
             surf(xx,yy,z)
@@ -200,7 +213,7 @@ classdef PRM
             onDeck = enqueue(onDeck, [PRM.sample_n + 1, norm(start - goal)]);
             % Keep track of all done nodes
             done = [];
-            seen = [PRM.sample_n + 1];
+            seen = PRM.sample_n + 1;
             parents = zeros(PRM.sample_n, 1);
             deqed = [];
             while true
