@@ -105,6 +105,8 @@ classdef PRM
             ind_1 = max_ind(1);
             if max_2_ind(1) == ind_1
                 ind_2 = max_2_ind(2);
+            else
+                ind_2 = max_2_ind(1);
             end
             p(ind_1) = v_norm(ind_2);
             p(ind_2) = -v_norm(ind_1);

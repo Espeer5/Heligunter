@@ -50,6 +50,15 @@ classdef world
             end
         end
 
+        function world = add_terrain(world, num_bumps, avg_height)
+            % Add a randomly generated bumpy terrain to the world
+            for i = 1:num_bumps
+                bump = Obstacle([randi(world.xmax) randi(world.ymax) -1], ...
+                    normrnd(avg_height, 1));
+                world.obs(end + 1) = bump;
+            end
+        end
+
         function in_freespace = in_freespace(world, point)
             % Check if a point in the map is in freespace
             % (outside any obstacles)
