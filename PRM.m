@@ -120,11 +120,12 @@ classdef PRM
             num_collisions = zeros(50, 1);
 
             for i = 1:length(angles)
+                rotMat = [cos(angles(i)) -sin(angles(i)) 0;
+                          sin(angles(i)) cos(angles(i)) 0;
+                          0 0 1];
                 % Normal vector to plane
-                N = start + p/norm(p) * cos(angles(i)) + b * sin(angles(i));
+                N = b * rotMat;
                 normals(i, :) = N;
-                % Show plane 
-                show_plane(PRM, start, N)
                 coll = 0;
                 for j = 1:length(PRM.space.obs)
                     % Checking for collision between obstacle and chosen plane 
