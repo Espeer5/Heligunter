@@ -9,6 +9,7 @@ classdef PRM
         adjmat double
         path double
         clearance double
+        s_p_f
     end
 
     methods
@@ -314,5 +315,26 @@ classdef PRM
            end 
         end
 
+        function PRM = smooth_path(PRM)
+            % Smooth out the corners in the post-processed path
+
+            % First, take the midpoints of each segment in the path
+            path_pts = PRM.sample_points(PRM.path, :);
+            mids = zeros(length(PRM.path) + 1, 3);
+            mids(1, :) = path_pts(1, :);
+            for i=1:length(path_pts) - 1
+                mids(i, :) = path_pts(i, :) + (path_pts(i + 1, :) ...
+                    - path_pts(i, :)) / 2;
+            end
+            mids(end, :) = path_pts(end, :);
+            % Create the smoothed path function
+            PRM.s_p_f = cscvn(mids);
+        end
+
+        function show_smooth(PRM)
+            % Plot a smoothed path function for the given PRM
+            plot_world(PRM.space);
+            fnplt(PRM.s_p_f);
+        end
     end
 end
