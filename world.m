@@ -86,27 +86,27 @@ classdef world
         % function world = add_wall_with_hole()
         % end
 
-        function in_freespace = in_freespace(world, point)
+        function in_freespace = in_freespace(world, point, clearance)
             % Check if a point in the map is in freespace
             % (outside any obstacles)
             in_freespace = true;
             % Ensure point in bounds
             if (point(1) > world.xmax || point(2) > world.ymax || point(3) ...
                     > world.zmax || point(1) <= 0 || point(2) <= 0 || ...
-                    point(3) <= 0)
+                    point(3) <= 0 + clearance)
                 in_freespace = false;
             else
                 % Check to ensure no collisions with obstacles
                 for i = 1:length(world.obs)
                     dist = norm(world.obs(i).center - point);
-                    if dist <= world.obs(i).radius
+                    if dist <= world.obs(i).radius + clearance
                         in_freespace = false;
                     end
                 end
             end
         end
 
-        function connects = connects(world, point1, point2)
+        function connects = connects(world, point1, point2, clearance)
             % Determine if two points connect with respect to the world
             connects = true;
             v = point2 - point1;
@@ -116,7 +116,7 @@ classdef world
                 u = Q - point1;
                 proj = dot(u, v_norm) * v_norm;
                 w = u - proj;
-                if norm(w) <= world.obs(i).radius
+                if norm(w) <= world.obs(i).radius + clearance
                     connects = false;
                     break
                 end

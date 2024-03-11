@@ -8,16 +8,18 @@ classdef PRM
         space world
         adjmat double
         path double
+        clearance double
     end
 
     methods
 
-        function PRM = PRM(sample_n, K, space)
+        function PRM = PRM(sample_n, K, space, clearance)
            % Construct a PRM planner
            PRM.sample_n = sample_n;
            PRM.K = K;
            PRM.space = space;
            PRM.adjmat = zeros(PRM.sample_n);
+           PRM.clearance = clearance;
         end
 
         function PRM = sampler(PRM)
@@ -30,7 +32,7 @@ classdef PRM
                 y = randi(PRM.space.ymax);
                 z = randi(PRM.space.zmax);
                 sample = [x, y, z];
-                if in_freespace(PRM.space, sample)
+                if in_freespace(PRM.space, sample, PRM.clearance)
                     new_sample_points(index, 1:3) = sample;
                     added = added + 1;
                     index = index + 1;
@@ -62,7 +64,7 @@ classdef PRM
                     end
                     point1 = PRM.sample_points(neighbors(j), :);
                     point2 = PRM.sample_points(i, :);
-                    if connects(PRM.space, point1, point2)
+                    if connects(PRM.space, point1, point2, PRM.clearance)
                         dist = norm(point2 - point1);
                         PRM.adjmat(i, neighbors(j)) = dist;
                         PRM.adjmat(neighbors(j), i) = dist;
@@ -162,7 +164,7 @@ classdef PRM
                 % Shift point "S" along normal to plane by normally distributed 
                 % distance to get final sample point
                 s = s_in_plane' + N * normrnd(0, std_dev);
-                if in_freespace(PRM.space, s)
+                if in_freespace(PRM.space, s, PRM.clearance)
                     PRM.sample_points(end + 1, :) = s;
                 end
             end
@@ -180,8 +182,8 @@ classdef PRM
 
         function PRM = find_path(PRM, start, goal)
             % Find a path between a given start and goal
-            if ~in_freespace(PRM.space, start) || ~in_freespace(PRM.space, ...
-                    goal)
+            if ~in_freespace(PRM.space, start, PRM.clearance) || ...
+                ~in_freespace(PRM.space, goal, PRM.clearance)
                 error("Obscured start or goal")
             end
             to_add = [start; goal];
@@ -199,7 +201,7 @@ classdef PRM
                         neighbors = knnsearch(kdt, to_add(i, :), ...
                             'K', PRM.K + 1 + j);
                     end
-                    if connects(PRM.space, to_add(i), PRM.sample_points(neighbors(j), :))
+                    if connects(PRM.space, to_add(i), PRM.sample_points(neighbors(j), :), PRM.clearance)
                         point1 = PRM.sample_points(PRM.sample_n + i, :);
                         point2 = PRM.sample_points(neighbors(j), :);
                         PRM.adjmat(PRM.sample_n + i, neighbors(j)) = norm(point1 - point2);
@@ -301,7 +303,7 @@ classdef PRM
                while i < length(PRM.path)
                    prev_node = PRM.sample_points(PRM.path(i-1), :);
                    next_node = PRM.sample_points(PRM.path(i+1), :);
-                   if connects(PRM.space, prev_node, next_node)
+                   if connects(PRM.space, prev_node, next_node, PRM.clearance)
                        % skipping a node 
                        PRM.path(i) = [];
                        check_again = true;
