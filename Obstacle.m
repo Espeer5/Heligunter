@@ -25,5 +25,9 @@ classdef Obstacle
                  obj.zmesh * obj.radius + obj.center(3));
             colormap([.3 .3 .3]);
         end
+
+        % function remove_obstacle(obj)
+        % end
+
     end
 end

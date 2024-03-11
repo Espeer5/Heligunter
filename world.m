@@ -59,6 +59,33 @@ classdef world
             end
         end
 
+        function world = add_wall(world, x_start, x_end, y_start, ...
+                y_end, z_start, z_end, radius)
+
+            num_balls_x = ceil(abs(x_start - x_end)/radius);
+            num_balls_y = ceil(abs(y_start - y_end)/radius);
+            num_balls_z = ceil(abs(z_start - z_end)/radius);
+            x_spacing = linspace(radius + x_start, x_end - radius, num_balls_x);
+            y_spacing = linspace(radius + y_start, y_end - radius, num_balls_y);
+            z_spacing = linspace(radius + z_start, z_end - radius, num_balls_z);
+
+            for i = 1 : num_balls_x
+                for j = 1 : num_balls_y
+                    for k = 1 : num_balls_z
+                        x_center = x_spacing(i);
+                        y_center = y_spacing(j);
+                        z_center = z_spacing(k);
+                        ball = Obstacle([x_center y_center z_center], ...
+                            radius);
+                        world.obs(end + 1) = ball ; 
+                    end
+                end 
+            end
+        end 
+
+        % function world = add_wall_with_hole()
+        % end
+
         function in_freespace = in_freespace(world, point)
             % Check if a point in the map is in freespace
             % (outside any obstacles)

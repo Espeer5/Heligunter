@@ -152,10 +152,7 @@ classdef PRM
             xmax = PRM.space.xmax;
             ymax = PRM.space.ymax;
             zmax = PRM.space.zmax;
-            to_lims = [xmax-center(1) center(1) ; ymax-center(2) center(2) ; zmax-center(3) center(3)];
-            [~, I] = max(to_lims);
-            max_dim = I(1);
-            sz = max(to_lims(max_dim, :));
+            sz = sqrt(xmax^2 + ymax^2 + zmax^2);
 
             % Generating uniform sample on chosen plane 
             Q = null(N);
@@ -248,6 +245,7 @@ classdef PRM
                         seen(end + 1) = neighbors(1, j);
                         parents(neighbors(1, j)) = state(1);
                         onDeck = enqueue(onDeck, [neighbors(1, j), cost]);
+                        onDeck = sort(onDeck);
                     elseif ismember(neighbors(1, j), onDeck.list(:, 1))
                         index = find(onDeck.list(:, 1) == neighbors(1, j));
                         if cost < onDeck.list(index, 2)
@@ -306,7 +304,6 @@ classdef PRM
                    if connects(PRM.space, prev_node, next_node)
                        % skipping a node 
                        PRM.path(i) = [];
-                       i = i + 1;
                        check_again = true;
                    else
                        i = i + 1;
