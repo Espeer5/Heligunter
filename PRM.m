@@ -323,12 +323,12 @@ classdef PRM
             mids = zeros(length(PRM.path) + 1, 3);
             mids(1, :) = path_pts(1, :);
             for i=1:length(path_pts) - 1
-                mids(i, :) = path_pts(i, :) + (path_pts(i + 1, :) ...
+                mids(i + 1, :) = path_pts(i, :) + (path_pts(i + 1, :) ...
                     - path_pts(i, :)) / 2;
             end
             mids(end, :) = path_pts(end, :);
             % Create the smoothed path function
-            PRM.s_p_f = cscvn(mids);
+            PRM.s_p_f = cscvn(mids');
         end
 
         function show_smooth(PRM)
