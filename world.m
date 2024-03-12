@@ -34,7 +34,7 @@ classdef world
             view(-30,30)
             % Add a floor
             [x, y] = meshgrid(0:world.xmax, 0:world.ymax);
-            surf(x, y, zeros(length(x)), 'FaceColor', 'black')
+            surf(x, y, zeros(length(x)), 'FaceColor', [0.982 0.333 0.176])
 
         end
 
@@ -81,10 +81,36 @@ classdef world
                     end
                 end 
             end
-        end 
+        end
 
-        % function world = add_wall_with_hole()
-        % end
+        function world = add_holy_wall(world, x_start, x_end, y_start, ...
+                y_end, z_start, z_end, radius, hole_center, hole_radius)
+
+            num_balls_x = ceil(abs(x_start - x_end)/radius);
+            num_balls_y = ceil(abs(y_start - y_end)/radius);
+            num_balls_z = ceil(abs(z_start - z_end)/radius);
+            x_spacing = linspace(radius + x_start, x_end - radius, num_balls_x);
+            y_spacing = linspace(radius + y_start, y_end - radius, num_balls_y);
+            z_spacing = linspace(radius + z_start, z_end - radius, num_balls_z);
+
+            for i = 1 : num_balls_x
+                for j = 1 : num_balls_y
+                    for k = 1 : num_balls_z
+                        x_center = x_spacing(i);
+                        y_center = y_spacing(j);
+                        z_center = z_spacing(k);
+                        if ~((x_center >= hole_center(1) - hole_radius & ...
+                                x_center <= hole_center + hole_radius) & ...
+                                (z_center >= hole_center(3) - hole_radius & ...
+                                z_center <= hole_center(3) + hole_radius))
+                            ball = Obstacle([x_center y_center z_center], ...
+                                radius);
+                            world.obs(end + 1) = ball;
+                        end
+                    end
+                end 
+            end
+        end
 
         function in_freespace = in_freespace(world, point, clearance)
             % Check if a point in the map is in freespace
@@ -110,13 +136,26 @@ classdef world
             % Determine if two points connect with respect to the world
             connects = true;
             v = point2 - point1;
-            v_norm = v / norm(v);
+            %v_norm = v / norm(v);
             for i=1:length(world.obs)
                 Q = world.obs(i).center;
-                u = Q - point1;
-                proj = dot(u, v_norm) * v_norm;
-                w = u - proj;
-                if norm(w) <= world.obs(i).radius + clearance
+                %u = Q - point1;
+                %proj = dot(u, v_norm) * v_norm;
+                % w = u - proj;
+                t = ((Q(1) - point1(1)) * (point2(1) - point1(1)) + ...
+                    (Q(2) - point1(2)) * (point2(2) - point1(2)) + ...
+                    (Q(3) - point1(3)) * (point2(3) - point1(3))) ...
+                    / ((norm(v))^2);
+                if t > 1
+                    t = 1;
+                elseif t < 0
+                    t = 0;
+                end
+                P = [(point1(1) + t * (point2(1) - point1(1))) ...
+                    (point1(2) + t * (point2(2) - point1(2))) ...
+                    (point1(3) + t * (point2(3) - point1(3)))];
+                dist = norm(Q - P);
+                if dist <= world.obs(i).radius + clearance
                     connects = false;
                     break
                 end

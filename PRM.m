@@ -202,11 +202,11 @@ classdef PRM
                         neighbors = knnsearch(kdt, to_add(i, :), ...
                             'K', PRM.K + 1 + j);
                     end
-                    if connects(PRM.space, to_add(i), PRM.sample_points(neighbors(j), :), PRM.clearance)
+                    if connects(PRM.space, to_add(i, :), PRM.sample_points(neighbors(j + 1), :), PRM.clearance)
                         point1 = PRM.sample_points(PRM.sample_n + i, :);
-                        point2 = PRM.sample_points(neighbors(j), :);
-                        PRM.adjmat(PRM.sample_n + i, neighbors(j)) = norm(point1 - point2);
-                        PRM.adjmat(neighbors(j), PRM.sample_n + i ) = norm(point1 - point2);
+                        point2 = PRM.sample_points(neighbors(j + 1), :);
+                        PRM.adjmat(PRM.sample_n + i, neighbors(j + 1)) = norm(point1 - point2);
+                        PRM.adjmat(neighbors(j + 1), PRM.sample_n + i ) = norm(point1 - point2);
                         added = added + 1;
                     end
                 end
@@ -318,6 +318,11 @@ classdef PRM
         function PRM = smooth_path(PRM)
             % Smooth out the corners in the post-processed path
 
+            % If the path is a straight line it can't be smoothed
+            if length(PRM.path) <= 2
+                return
+            end
+
             % First, take the midpoints of each segment in the path
             path_pts = PRM.sample_points(PRM.path, :);
             mids = zeros(length(PRM.path) + 1, 3);
@@ -333,6 +338,9 @@ classdef PRM
 
         function show_smooth(PRM)
             % Plot a smoothed path function for the given PRM
+            if length(PRM.path) <= 2
+                return
+            end
             plot_world(PRM.space);
             fnplt(PRM.s_p_f);
         end
