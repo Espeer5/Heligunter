@@ -10,6 +10,7 @@ classdef PRM
         path double
         clearance double
         s_p_f
+        pl_norm double
     end
 
     methods
@@ -146,6 +147,7 @@ classdef PRM
             [~, I] = min(num_collisions);
             ind = I(1);
             N = normals(ind, :);
+            PRM.pl_norm = N;
 
             % Show plane 
             show_plane(PRM, start, N)
