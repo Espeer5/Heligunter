@@ -263,7 +263,7 @@ classdef PRM
                     break
                 end
                 if isempty(onDeck.list)
-                    error("~gunty")
+                    error("couldn't find a path")
                 end
             end
             new_path = [];
@@ -336,12 +336,29 @@ classdef PRM
             PRM.s_p_f = cscvn(mids');
         end
 
+        function find_path_length(PRM)
+            % Use spline breakpoints for integration param vals 
+            t_values = PRM.s_p_f.breaks;
+            
+            derivative_path = fnder(PRM.s_p_f);
+            integrand = @(t) sqrt(sum(fnval(derivative_path, t).^2, 1));
+            
+            % Numerical integration using Simpson's rule
+            % Integrand function returns an array of values when 
+            % evaluated at a single point
+            path_length = integral(integrand, t_values(1),...
+                t_values(end), 'ArrayValued', true);
+            
+            disp(['Path length from numerical integration: ', num2str(path_length)]);
+        end
+
         function show_smooth(PRM)
             % Plot a smoothed path function for the given PRM
             if length(PRM.path) <= 2
                 return
             end
             plot_world(PRM.space);
+            find_path_length(PRM);
             fnplt(PRM.s_p_f);
         end
     end
